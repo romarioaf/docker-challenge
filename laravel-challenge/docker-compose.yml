@@ -21,11 +21,10 @@ services:
     nginx:
         build: .docker/nginx
         container_name: nginx
-        entrypoint: dockerize -template ./.docker/nginx/template-nginx.conf:/etc/nginx/conf.d/default.conf
-        environment: 
+        entrypoint: dockerize -template /etc/nginx/template-nginx.conf:/etc/nginx/conf.d/nginx.conf
+        environment:
             - APPLICATION_DNS=app
             - APPLICATION_PORT=9000
-        restart: always
         tty: true
         ports:
             - 8000:80
@@ -33,6 +32,7 @@ services:
             - .:/var/www
         networks:
             - app-network
+        command: ["nginx", "-g", "daemon off;"]
         depends_on: 
             - app
     
@@ -52,11 +52,11 @@ services:
             - MYSQL_USER=root
         networks: 
             - app-network
-        # healthcheck:
-        #     test: ["CMD-SHELL", 'mysql -uroot --database=laravel --password=root --execute="SELECT COUNT(table_name) > 0 FROM information_schema.tables;" --skip-column-names -B']
-        #     interval: 10s
-        #     timeout: 10s
-        #     retries: 4
+        healthcheck:
+            test: ["CMD-SHELL", 'mysql -uroot --database=laravel --password=root --execute="SELECT COUNT(table_name) > 0 FROM information_schema.tables;" --skip-column-names -B']
+            interval: 10s
+            timeout: 10s
+            retries: 4
 
     redis:
         image: redis:alpine
